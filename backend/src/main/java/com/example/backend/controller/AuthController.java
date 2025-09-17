@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,6 +39,12 @@ public class AuthController {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return jwtUtil.generateToken(user.getEmail(), user.getRole());
+    }
+    // ========== LOGIN SUCCESS FOR OAUTH2 ==========
+    @GetMapping("/login/success")
+    public String loginSuccess(OAuth2AuthenticationToken authentication) {
+        OAuth2User user = authentication.getPrincipal();
+        return "Hello " + user.getAttribute("name") + ", email: " + user.getAttribute("email");
     }
 
     // ========== REGISTER ==========
@@ -65,5 +73,10 @@ public class AuthController {
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
         String response = authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(response);
+    }
+    // ========== LOGOUT SUCCESS ==========
+    @GetMapping("/logout/success")
+    public ResponseEntity<String> logoutSuccess() {
+        return ResponseEntity.ok("Bạn đã đăng xuất thành công!");
     }
 }
