@@ -1,35 +1,30 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.ForgotPasswordRequest;
 import com.example.backend.dto.LoginRequest;
 import com.example.backend.dto.RegisterRequest;
+import com.example.backend.dto.ResetPasswordRequest;
 import com.example.backend.entity.Users;
 import com.example.backend.repository.UsersRepository;
 import com.example.backend.security.JwtUtil;
+import com.example.backend.service.AuthService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
-
-    public AuthController(AuthenticationManager authenticationManager,
-                          JwtUtil jwtUtil,
-                          UsersRepository usersRepository,
-                          PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
-        this.usersRepository = usersRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final AuthService authService;
 
     // ========== LOGIN ==========
     @PostMapping("/login")
@@ -46,23 +41,29 @@ public class AuthController {
 
     // ========== REGISTER ==========
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest request) {
-        if (usersRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
-        }
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        String response = authService.register(request);
+        return ResponseEntity.ok(response);
+    }
 
-        Users user = new Users();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // hash pass
-        user.setPhone(request.getPhone());
-        user.setAddress(request.getAddress());
-        user.setRole("CUSTOMER");
-        user.setStatus(true);
-        user.setStartDate(LocalDate.now());
+    // ========== VERIFY EMAIL ==========
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
+        String response = authService.verifyToken(token);
+        return ResponseEntity.ok(response);
+    }
 
-        usersRepository.save(user);
+    // ========== FORGOT PASSWORD ==========
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        String response = authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(response);
+    }
 
-        return "User registered successfully!";
+    // ========== RESET PASSWORD ==========
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+        String response = authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(response);
     }
 }

@@ -8,16 +8,18 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "coupon")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long couponId;
 
+    @Column(unique = true)
     private String code;
+
     private String description;
     private String discountType; // PERCENT, FIXED
     private BigDecimal discountValue;

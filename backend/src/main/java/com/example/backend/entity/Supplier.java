@@ -8,10 +8,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "supplier")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,6 +24,6 @@ public class Supplier {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    @OneToMany(mappedBy = "supplier")
+    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
     private List<Product> products;
 }

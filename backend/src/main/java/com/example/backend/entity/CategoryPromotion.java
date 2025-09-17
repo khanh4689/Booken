@@ -8,17 +8,17 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "category_promotion")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CategoryPromotion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long promotionId;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "categoryId")
     private Category category;
 
     private String name;

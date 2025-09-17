@@ -8,17 +8,17 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payment")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long paymentId;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "orderId")
     private Orders order;
 
     private String paymentMethod; // VNPAY, COD, CREDIT_CARD
