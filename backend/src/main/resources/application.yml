@@ -2,6 +2,7 @@ spring:
   application:
     name: backend
 
+
   datasource:
     url: jdbc:postgresql://ep-floral-union-a1c28c4q-pooler.ap-southeast-1.aws.neon.tech/booken?sslmode=require
     username: neondb_owner
@@ -32,4 +33,5 @@ spring:
       mail.smtp.connectiontimeout: 5000
       mail.smtp.timeout: 5000
       mail.smtp.writetimeout: 5000
-
+  frontend:
+    url=http://localhost:5173:

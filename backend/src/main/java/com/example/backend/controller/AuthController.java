@@ -9,6 +9,7 @@ import com.example.backend.repository.UsersRepository;
 import com.example.backend.security.JwtUtil;
 import com.example.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,15 +33,35 @@ public class AuthController {
 
     // ========== LOGIN ==========
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(), request.getPassword()
+                    )
+            );
 
-        Users user = usersRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            Users user = usersRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+            String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+
+            return ResponseEntity.ok().body(Map.of(
+                    "token", token,
+                    "message", "Login successful",
+                    "role", user.getRole()
+            ));
+
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid email or password"));
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "User not found"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Unexpected error: " + e.getMessage()));
+        }
     }
     // ========== LOGIN SUCCESS FOR OAUTH2 ==========
     @GetMapping("/login/success")
@@ -49,10 +72,23 @@ public class AuthController {
 
     // ========== REGISTER ==========
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
-        String response = authService.register(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+        if (usersRepository.existsByEmail(req.getEmail())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Email already exists");
+        }
+        if (usersRepository.existsByPhone(req.getPhone())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Phone already exists");
+        }
+
+        // Tiếp tục tạo user
+        authService.register(req);
+        return ResponseEntity.ok("Register success");
     }
+
 
     // ========== VERIFY EMAIL ==========
     @GetMapping("/verify")
@@ -64,8 +100,12 @@ public class AuthController {
     // ========== FORGOT PASSWORD ==========
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        String response = authService.forgotPassword(request.getEmail());
-        return ResponseEntity.ok(response);
+        try {
+            String response = authService.forgotPassword(request.getEmail());
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     // ========== RESET PASSWORD ==========

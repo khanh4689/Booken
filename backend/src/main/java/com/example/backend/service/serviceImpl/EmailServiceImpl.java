@@ -19,7 +19,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    @Value("${frontend.url:http://localhost:8080}")
+    @Value("${frontend.url:http://localhost:5173}")
     private String frontendUrl; // URL frontend hoặc verify link base
 
     @Override
@@ -72,24 +72,26 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendPasswordResetEmail(String to, String token) {
         String subject = "Reset Your Password";
-        String link = "http://localhost:8080/reset-password?token=" + token; // frontend link
+        // ✅ Chuyển sang frontend link
+        String link = frontendUrl + "/reset-password?token=" + token;
 
         String htmlContent = """
-            <html>
-            <body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
-                <div style="max-width:600px; margin:auto; background-color:#fff; padding:30px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
-                    <h2 style="color:#333;">Reset Your Password</h2>
-                    <p>Click the button below to reset your password:</p>
-                    <a href="%s" style="display:inline-block; padding:12px 25px; margin:20px 0; background-color:#007bff; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;">Reset Password</a>
-                    <p>If the button doesn’t work, copy and paste this link into your browser:</p>
-                    <p style="color:#555; word-break:break-all;">%s</p>
-                </div>
-            </body>
-            </html>
-            """.formatted(link, link);
+        <html>
+        <body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
+            <div style="max-width:600px; margin:auto; background-color:#fff; padding:30px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                <h2 style="color:#333;">Reset Your Password</h2>
+                <p>Click the button below to reset your password:</p>
+                <a href="%s" style="display:inline-block; padding:12px 25px; margin:20px 0; background-color:#007bff; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold;">Reset Password</a>
+                <p>If the button doesn’t work, copy and paste this link into your browser:</p>
+                <p style="color:#555; word-break:break-all;">%s</p>
+            </div>
+        </body>
+        </html>
+        """.formatted(link, link);
 
         sendHtmlEmail(to, subject, htmlContent);
     }
+
 
     @Override
     public void sendBulkHtmlEmail(List<String> toList, String subject, String htmlContent) {

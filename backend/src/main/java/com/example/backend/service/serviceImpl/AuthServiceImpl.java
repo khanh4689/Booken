@@ -77,11 +77,11 @@ public class AuthServiceImpl implements AuthService {
         Users user = usersRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found"));
 
-        // Tạo token reset hoặc cập nhật nếu đã tồn tại
-        String token = UUID.randomUUID().toString();
-        createOrUpdateVerificationToken(user, token, 1); // 1h hết hạn
 
-        // Gửi email reset
+        String token = UUID.randomUUID().toString();
+        createOrUpdateVerificationToken(user, token, 1);
+
+        // ✅ Gửi email reset
         emailService.sendPasswordResetEmail(user.getEmail(), token);
 
         return "Password reset email sent! Please check your inbox.";
