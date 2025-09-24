@@ -35,12 +35,14 @@ public class SecurityConfig {
                     return config;
                 }))
 
+
                 // ✅ Tắt CSRF vì API thường không dùng session
                 .csrf(AbstractHttpConfigurer::disable)
 
                 // ✅ Phân quyền
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
